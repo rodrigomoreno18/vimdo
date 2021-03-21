@@ -161,98 +161,10 @@ class Vimdo:
 
 
 def main(stdscr):
-    # curses.curs_set(False)
-    # stdscr.clear()
-
     vimdo = Vimdo(stdscr)
     vimdo.run()
 
     return
-    # command_window = curses.newwin(
-    #     1, curses.COLS - 1, curses.LINES - 3, 0
-    # )
-    # input_window = curses.newwin(
-    #     1, curses.COLS - 1, curses.LINES - 2, 1
-    # )
-    # main_window = curses.newwin(
-    #     curses.LINES - 3, curses.COLS - 1, 0, 0
-    # )
-
-    # incomplete_entries = []
-
-    # input_state = InputStates.COMMAND
-    # input_textbox = Textbox(input_window, insert_mode=True)
-    # input_number = ""
-    # while input_state != InputStates.EXITING:
-    #     main_window.clear()
-
-    #     for i, entry in enumerate(incomplete_entries):
-    #         main_window.addstr(i + 1, 1, f"{i+1:3} - {entry.title}")
-
-    #     main_window.refresh()
-    #     command_window.refresh()
-    #     input_window.refresh()
-
-    #     if input_state == InputStates.COMMAND:
-    #         key = stdscr.getkey()
-
-    #         if key == curses.KEY_EXIT:
-    #             input_number = ""
-    #             input_state = InputStates.COMMAND
-    #         if key == "q":
-    #             input_state = InputStates.EXITING
-    #         elif key == "n":
-    #             command_window.addstr(
-    #                 0, 1, "Enter note title: (Ctrl-G to confirm)"
-    #             )
-    #             input_state = InputStates.SINGLE_INPUT
-    #         elif key in "0123456789":  # TODO: potentially optimizable
-    #             input_number += key
-    #         elif key == "d":
-    #             try:
-    #                 index = int(input_number)
-    #                 input_number = ""
-    #                 incomplete_entries.pop(index - 1)
-    #             except ValueError:
-    #                 command_window.addstr(
-    #                     0,
-    #                     1,
-    #                     "Please specify entry index first! e.g '5d', '12d'",
-    #                 )
-    #             except IndexError:
-    #                 command_window.addstr(0, 1, f"Invalid index! ({index})")
-    #         elif key == "e":
-    #             try:
-    #                 index = int(input_number)
-    #                 input_number = ""
-    #                 entry = incomplete_entries[index]
-    #             except ValueError:
-    #                 command_window.addstr(
-    #                     0,
-    #                     1,
-    #                     "Please specify entry index first! e.g '5d', '12d'",
-    #                 )
-    #             except IndexError:
-    #                 command_window.addstr(0, 1, f"Invalid index! ({index})")
-
-    #             input_window.addstr(0, 0, entry.title)
-    #             input_state = InputStates.SINGLE_INPUT
-
-    #     elif input_state == InputStates.SINGLE_INPUT:
-    #         curses.curs_set(True)
-    #         # curses.echo(True)
-    #         input_window.clear()
-
-    #         input_textbox.edit()
-    #         single_input = input_textbox.gather()
-    #         entry = ListEntry.new_entry(single_input, "")
-    #         incomplete_entries.append(entry)
-    #         input_state = InputStates.COMMAND
-
-    #         # curses.echo(False)
-    #         curses.curs_set(False)
-    #         input_window.clear()
-    #         command_window.clear()
 
 
 if __name__ == "__main__":
