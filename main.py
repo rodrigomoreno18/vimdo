@@ -18,6 +18,9 @@ class StringEntryData:
     def __init__(self, data):
         self._data = data
 
+    def string(self):
+        return self._data
+
     def lines(self):
         return self._data.split("\n")
 
@@ -32,6 +35,7 @@ class ListEntry:
     def __init__(self, title: str, data: StringEntryData):
         self._title = title.strip()
         self._data = data
+        self._link = None
 
     @property
     def title(self):
@@ -44,8 +48,11 @@ class ListEntry:
     def set_title(self, new_title: str):
         self._title = new_title.strip()
 
-    def set_data(self, new_data: StringEntryData):
-        self._data = new_data
+    def set_data(self, new_data: str):
+        self._data = StringEntryData(new_data)
+
+    def set_link(self, link: str):
+        self._link = link
 
     @classmethod
     def new_entry(cls, title: str, data: str):
@@ -163,7 +170,10 @@ class Vimdo:
 
         self._input_state = InputStates.COMMAND
         self._input_number = ""
-        self._input_textbox = Textbox(self._input_window, insert_mode=True)
+        self._line_input_textbox = Textbox(
+            self._input_window, insert_mode=True
+        )
+        self._main_input_textbox = Textbox(self._main_window, insert_mode=True)
 
     def run(self):
         curses.curs_set(False)
@@ -178,9 +188,8 @@ class Vimdo:
             self._refresh_windows()
 
             if self._input_state == InputStates.COMMAND:
-                self._display_command_prompt(
-                    f"COMMAND [{self._input_number if errored is None else errored}]"
-                )
+                output = errored if errored is not None else self._input_number
+                self._display_command_prompt(f"COMMAND [{output}]")
                 key = self._command_window.getkey()
 
                 try:
@@ -223,14 +232,22 @@ class Vimdo:
 
             self._display_command_prompt(f"Editing entry number {index + 1}")
 
-            self._input_window.addstr(0, 0, entry.title.strip())
-            new_title = self._get_single_line_input()
+            new_title = self._get_single_line_input(entry.title.strip())
             entry.set_title(new_title)
         elif key == "s":
             self._persist_entries()
             self._display_command_prompt("List saved!")
         elif key == "l":
             self._load_entries()
+        elif key in (curses.KEY_ENTER, "\n", "\r"):
+            index = self._parse_and_reset_index()
+            entry = self._buffer[index]
+
+            self._display_command_prompt(
+                f"Editing data for entry {index + 1}..."
+            )
+            data = self._get_multi_line_input(entry.data.string())
+            entry.set_data(data)
         else:
             self._input_number = ""
             raise NotImplementedError(
@@ -263,12 +280,33 @@ class Vimdo:
         except ValueError:
             raise ValueError("Please specify entry index first!")
 
-    def _get_single_line_input(self):
+    def _get_multi_line_input(self, placeholder=None):
+        curses.curs_set(True)
+
+        self._main_window.clear()
+        if placeholder is not None:
+            self._main_window.addstr(placeholder)
+
+        self._main_input_textbox.edit()
+        output = self._main_input_textbox.gather()
+        self._input_state = InputStates.COMMAND
+
+        curses.curs_set(False)
+        self._main_window.clear()
+        self._command_window.clear()
+
+        return output
+
+    def _get_single_line_input(self, placeholder=None):
         curses.curs_set(True)
         # curses.echo(True)
 
-        self._input_textbox.edit()
-        single_line_input = self._input_textbox.gather()
+        self._input_window.clear()
+        if placeholder is not None:
+            self._input_window.addstr(placeholder)
+
+        self._line_input_textbox.edit()
+        single_line_input = self._line_input_textbox.gather()
         self._input_state = InputStates.COMMAND
 
         # curses.echo(False)
@@ -300,6 +338,7 @@ def main(stdscr):
     entry_buffer = EntryBuffer()
     serializer = VimdoSerializer()
     file_storage = FilePersistence(os.path.join(os.path.curdir, "todo.vimdo"))
+
     vimdo = Vimdo(stdscr, entry_buffer, serializer, file_storage)
     vimdo.run()
 
